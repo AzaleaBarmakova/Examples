@@ -1,0 +1,51 @@
+#include <iostream>
+#include <vector>
+#include <limits>
+#include <algorithm>
+using namespace std;
+struct flight {
+    int from;
+    long long time_from;
+    int to;
+    long long time_to;
+	flight(int f, long long tf, int t, long long tt) {
+		from = f;
+		time_from = tf;
+		to = t;
+		time_to = tt;
+	}
+};
+
+int min_time_in_flights_throw_time(vector<flight>& G, int N, int Start, int Finish) {
+    long long INF = numeric_limits<long long>::max();
+    vector<long long> time(N, INF);
+    time[Start] = 0;
+    int A;
+    if (N < G.size())
+        A = G.size();
+	else
+		A = N;
+    for(int i = 0; i < A; ++i)
+        for(int j = 0; j < G.size(); ++j) {
+            int from = G[j].from;
+            long long time_from = G[j].time_from;
+            int to = G[j].to;
+            long long time_to = G[j].time_to;
+            if (time[from] < INF && time_from >= time[from] && time_to < time[to])
+                time[to] = time_to;
+        }
+    return time[Finish];
+}
+
+int main() {
+    int N, A, B, K, from, to;
+    long long time_from, time_to;
+    cin >> N >> A >> B >> K;
+    vector<flight> G;
+    for(int i = 0; i < K; ++i) {
+        cin >> from >> time_from >> to >> time_to;
+        G.push_back(flight(from - 1, time_from, to - 1, time_to));
+    }
+    cout << min_time_in_flights_throw_time(G, N, A - 1, B - 1);
+    return 0;
+}

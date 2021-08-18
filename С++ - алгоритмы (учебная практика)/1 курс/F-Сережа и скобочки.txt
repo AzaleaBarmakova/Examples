@@ -1,0 +1,65 @@
+#include<iostream> 
+#include<vector> 
+#include<algorithm> 
+#include<limits> 
+#include<string> 
+
+using namespace std; 
+
+class SegmentTree { 
+	vector<pair<pair<int, int>, int> > ST; 
+public: 
+	pair<pair<int, int>, int> combine(pair<pair<int, int>, int> l, pair<pair<int, int>, int> r) { 
+		int count = 0; 
+		while (l.first.first != 0 && r.first.second != 0) { 
+			l.first.first--; 
+			r.first.second--; 
+			count += 2; 
+		} 
+		return make_pair(make_pair(l.first.first+ r.first.first, l.first.second + r.first.second), l.second + r.second + count); 
+	} 
+
+	void build(vector<int>& a, int v, int STstart, int STfinish) { 
+		ST.resize(a.size() * 4); 
+		if (STstart == STfinish)  
+			if (a[STstart] == 1) 
+				ST[v] = make_pair(make_pair(1, 0), 0); 
+			else 
+				ST[v] = make_pair(make_pair(0, 1), 0); 
+		else { 
+			int STm = (STstart + STfinish) / 2; 
+			build(a, v * 2, STstart, STm); 
+			build(a, v * 2 + 1, STm + 1, STfinish); 
+			ST[v] = combine(ST[v * 2], ST[v * 2 + 1]); 
+		} 
+	} 
+
+	pair<pair<int, int>, int> get_max(int v, int STstart, int STfinish, int l, int r) { 
+		if (l > r)  
+			return make_pair(make_pair(0, 0), 0); 
+		if (l == STstart && r == STfinish)  
+			return ST[v]; 
+		int STm = (STstart + STfinish) / 2; 
+		return combine(get_max(v * 2, STstart, STm, l, min(r, STm)), get_max(v * 2 + 1, STm + 1, STfinish, max(l, STm + 1), r)); 
+	} 
+};
+
+int main() { 
+	SegmentTree tree; 
+	vector<int> vec; 
+	string s; 
+	unsigned int q, l, r; 
+	cin >> s; 
+	for (int i = 0; i < s.length(); ++i)  
+		if (s[i] == '(')  
+			vec.push_back(1); 
+		else 
+			vec.push_back(-1); 
+	tree.build(vec, 1, 0 , vec.size() - 1); 
+	cin >> q; 
+	for (int i = 0; i < q; ++i) { 
+		cin >> l >> r; 
+		cout << tree.get_max(1, 0, vec.size() - 1, l - 1, r - 1).second << endl; 
+	} 
+	return 0; 
+}

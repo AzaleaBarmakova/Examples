@@ -1,0 +1,157 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+class Treap {
+public:
+    int x;
+    int y;
+    int index;
+    Treap* left;
+    Treap* right;
+    Treap* parent;
+    Treap(int value, int prior, int index_);
+};
+
+Treap::Treap(int value, int prior, int index_) : x(value), y(prior), index(index_), left(NULL), right(NULL), parent(NULL) {}
+
+void split(int key, Treap* t, Treap*& l, Treap*& r) {
+	if (t == NULL) {
+		l = NULL;
+        r = NULL;
+        return;
+    }
+    if (key < t->x) {
+		split(key, t->left, l, t->left);
+        r = t;
+        if(t->left != NULL)
+			(t->left)->parent = t;
+        return;
+	}
+    else {
+		split(key, t->right, t->right, r);
+        l = t;
+        if (t->right != NULL)
+			t->right->parent = t;
+        return;
+    }
+}
+
+void merge(Treap* & t, Treap* l, Treap* r) {
+    if (l == NULL) {
+        t = r;
+        return;
+    }
+    if (r == NULL) {
+         t = l;
+         return;
+    }
+    if (l->y < r->y) {
+        merge(l->right, l->right, r);
+        t = l;
+    }
+	else {
+	    merge (r->left, l, r->left);
+	    t = r;
+    }
+}
+
+void insert_Treap (Treap*& t, Treap* it) {
+	if (t == NULL)
+		t = it;
+	else {
+        if (it->y < t->y) {
+            split (it->x, t, it->left, it->right);
+            it->parent = t->parent;
+            t = it;
+            if(t->left != NULL)
+                t->left->parent = t;
+            if(t->right != NULL)
+                t->right->parent = t;
+        }
+        else {
+            if( it->x < t->x) {
+                insert_Treap (t->left, it);
+                t->left->parent = t;
+            }
+            else {
+                insert_Treap (t->right, it);
+                t->right->parent = t;
+            }
+        }
+    }
+}
+
+bool comp(const Treap& a, const Treap& b) {
+    return a.x < b.x ? true : false;
+}
+
+void build_Treap (int N, Treap* & T, vector<Treap>& startTreap, vector<Treap*>& result) {
+    sort(startTreap.begin(), startTreap.end(), comp);
+    Treap* last = &(startTreap[0]);
+    result[last->index - 1] = last;
+	for(int i = 1; i < N; ++i) {
+        if (last->y < startTreap[i].y) {
+            last->right = &startTreap[i];
+            last->right->parent = last;
+            last = &startTreap[i];
+            result[last->index - 1] = last;
+            continue;
+        }
+        Treap* cur = last;
+        while(cur->parent != NULL && cur->y > startTreap[i].y)
+            cur = cur->parent;
+        if (cur->y > startTreap[i].y) {
+            startTreap[i].left = cur;
+            startTreap[i].left->parent = &startTreap[i];
+            last = &startTreap[i];
+        }
+        else {
+            startTreap[i].left = cur->right;
+            startTreap[i].left->parent = &startTreap[i];
+            startTreap[i].parent = cur;
+            last = &startTreap[i];
+            cur->right = last;
+        }
+        result[last->index - 1] = last;
+    }
+	while(last->parent != NULL)
+        last = last->parent;
+    T = last;
+    return;
+}
+
+
+int main() {
+    int N, a_i, b_i;
+    cin >> N;
+    Treap* T = NULL;
+    vector<Treap> startTreap(N, Treap(0, 0, 0));
+    vector<Treap*> resultTreap(N);
+    for(int i = 0; i < N; ++i) {
+        cin >> a_i >> b_i;
+        startTreap[i].x = a_i;
+        startTreap[i].y = b_i;
+        startTreap[i].index = i + 1;
+    }
+	build_Treap (N, T, startTreap, resultTreap);
+    cout << "YES" << endl;
+    for(int j = 0; j < N; ++j) {
+        int p, r, l;
+		if (resultTreap[j]->parent == NULL)
+            p = 0;
+        else
+            p = resultTreap[j]->parent->index;
+		if (resultTreap[j]->left == NULL)
+            l = 0;
+        else
+            l = resultTreap[j]->left->index;
+		if (resultTreap[j]->right == NULL)
+            r = 0;
+        else
+            r = resultTreap[j]->right->index;
+        cout << p << " " << l << " " << r << endl;
+    }
+    return 0;
+}

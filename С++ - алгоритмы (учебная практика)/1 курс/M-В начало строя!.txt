@@ -1,0 +1,120 @@
+#include <iostream>
+#include <cstdlib>
+#include <vector>
+
+using namespace std;
+
+struct Treap {
+    int priority;   
+    int size;  
+    int data; 
+	Treap *left, *right; 
+};
+Treap *new_Treap(int data) {
+    Treap *result = new Treap;
+    result->priority = rand();
+    result->size = 1;     
+    result->data = data;
+    result->left = result->right = nullptr; 
+    return result;
+}
+int get_size(Treap *t) {
+    if (t == nullptr)  
+		return 0; 
+    return t->size; 
+}
+void update_size(Treap *t) {
+    if (t == nullptr) 
+		return; 
+    t->size = 1 + get_size(t->left) + get_size(t->right);
+}
+Treap *Merge(Treap *t1, Treap *t2) {
+    if (t1 == nullptr) 
+		return t2; 
+    if (t2 == nullptr) 
+		return t1; 
+    if (t1->priority > t2->priority) {
+        t1->right = Merge(t1->right, t2);
+        update_size(t1);
+        return t1;
+    }
+    else {
+        t2->left = Merge(t1, t2->left);
+        update_size(t2);
+        return t2;
+    }
+}
+void Split(Treap *t, int x, Treap *&t1, Treap *&t2) {
+    if (t == nullptr) {
+        t1 = t2 = nullptr;
+        return;
+    }
+    if (get_size(t->left) < x) {
+        Split(t->right, x - get_size(t->left) - 1, t->right, t2);
+        t1 = t;
+    }
+    else {
+        Split(t->left, x, t1, t->left);
+        t2 = t;
+    }
+    update_size(t);
+}
+Treap *insert(Treap *t, int pos, int data) {
+    Treap *t1, *t2;
+    Split(t, pos, t1, t2);
+    Treap* new_tree = new_Treap(data);
+    return Merge(Merge(t1, new_tree), t2);
+}
+Treap* erase(Treap *t, int pos) {
+    Treap *t1, *t2, *t3, *t4;
+    Split(t, pos, t1, t2);
+    Split(t2, pos + 1, t3, t4);
+    t = Merge(t1, t4);
+    delete t3;
+    return t;
+}
+int get_value(Treap *t, int pos) {
+    int index = get_size(t->left);
+    if (pos < index)
+		return get_value(t->left, pos);
+    else 
+		if (pos == index)
+			return t->data;
+		else
+			return get_value(t->right, pos - index - 1);
+}
+Treap *to_front(Treap *t, int l, int r){
+    Treap *t1, *t2, *t3, *t4;
+    Split(t, r + 1, t1, t2);
+    Split(t1, l, t3, t4);
+    return Merge(Merge(t4, t3), t2);
+}
+void print_tree(Treap *t) {
+    if (t == nullptr) 
+		return;
+    print_tree(t->left);
+    cout << t->data << " ";
+    print_tree(t->right);
+}
+Treap *build_Treap(vector<int>& v) {
+    Treap *result = nullptr;
+    for (int i = 0; i < v.size(); ++i)
+        result = Merge(result, new_Treap(v[i]));
+    return result;
+}
+
+int main() {
+    int n, m, l, r;
+	cin >> n >> m;
+	vector<int> v(n);
+	Treap *t = NULL;
+	for (int i = 0; i < n; ++i)
+		v[i] = i + 1;
+	t = build_Treap(v);
+	for (int i = 0; i < m; ++i) {
+		cin >> l >> r;
+		to_front(t, l - 1, r - 1);
+	}
+	print_tree(t);
+    return 0;
+}

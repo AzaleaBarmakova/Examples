@@ -1,0 +1,61 @@
+#include<iostream>
+#include<vector>
+#include<limits>
+#include<algorithm>
+using namespace std;
+void Pink_Floyd(vector<vector<long long> >&flights, vector<vector<int> >&next) {
+    int N = flights.size();
+    long long MIN_INF = numeric_limits<long long>::min();
+	for (int k = 0; k < N; ++k) 
+		for (int i = 0; i < N; ++i) 
+			for (int j = 0; j < N; ++j) 
+				if (flights[i][k] > MIN_INF && flights[k][j] > MIN_INF && flights[i][k] + flights[k][j] > flights[i][j]) {
+                    flights[i][j] = flights[i][k] + flights[k][j];
+					next[i][j] = next[i][k];
+				}
+}
+
+int main() {
+	int N, M, K;    //N - number of towns, M - number of flight, K - number of concerts
+	cin >> N >> M >> K;
+	long long MIN_INF = numeric_limits<long long>::min();
+	vector<vector<int> > number(N, vector<int>(N));
+	vector<vector<long long> > flights(N, vector<long long>(N, MIN_INF));
+	vector<vector<int> > next(N);
+	vector<int> towns;
+	int a, b;
+	long long w;
+	for (int i = 0; i < M; ++i) {
+		cin >> a >> b >> w;
+		flights[a - 1][b - 1] = w;
+		number[a - 1][b - 1] = i + 1;
+	}
+	for (int i = 0; i < K; ++i) {
+		cin >> a;
+		towns.push_back(a - 1);
+	}
+	for (int i = 0; i < N; ++i)
+		for (int j = 0; j < N; ++j)
+			next[i].push_back(j);
+	Pink_Floyd(flights, next);
+	vector<int> cycles;
+	for( int i = 0; i < N; ++i )
+		if( flights[i][i] > 0 )
+			cycles.push_back(i);
+	vector<int> path;
+	for (int i = 1; i < K; ++i) {
+		for (int j = towns[i - 1]; j != towns[i]; j = next[j][towns[i]]) {
+			for (int k = 0; k < cycles.size(); ++k)
+				if (flights[j][cycles[k]] > MIN_INF && flights[cycles[k]][next[j][towns[i]]] > MIN_INF) {
+					cout << "infinitely kind";
+					return 0;
+				}
+			path.push_back(number[j][next[j][towns[i]]]);
+		}
+	}
+	cout << path.size() << endl;
+	for( int i = 0; i < path.size(); ++i )
+		cout << path[i] << ' ';
+	return 0;
+}
+

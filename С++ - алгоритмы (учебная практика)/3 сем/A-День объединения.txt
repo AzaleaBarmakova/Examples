@@ -1,0 +1,69 @@
+#include<iostream>
+#include<vector>
+#include<cmath>
+#include<limits>
+using namespace std;
+class Graph {
+public:
+	vector<vector<double> > distance;
+	vector <bool> used; 
+	vector<double> minWeight; 
+	int n;
+	Graph(int N) {
+		double INF = numeric_limits<double>::max();
+		n = N;
+		distance.resize(n);
+		used.resize(n);
+		minWeight.resize(n, INF);
+		for (int i = 0; i < n; ++i) {
+			distance[i].resize(n);
+		}
+	}
+	void build_roads();
+};
+void Graph::build_roads() {
+	minWeight[0] = 0;
+	for (int i = 0; i < n; ++i) {
+		int nextV = -1;
+		for (int j = 0; j < n; ++j)
+			if (!used[j] && (nextV == -1 || minWeight[j] < minWeight[nextV]))
+				nextV = j;
+		used[nextV] = true;
+		for (int k = 0; k < n; ++k)
+			if (distance[nextV][k] < minWeight[k] && !used[k]) {
+				minWeight[k] = distance[nextV][k];
+		}
+	}
+}
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(0);
+	cout.precision(20);
+	double INF = numeric_limits<double>::max();
+	int n, x, y;
+	cin >> n;
+	Graph graph(n);
+	vector<pair<int, int> > coordinates(n, make_pair(0, 0));
+	for (int i = 0; i < n; ++i) {
+		cin >> x >> y;
+		coordinates[i] = make_pair(x, y);
+	}
+	for (int i = 0; i < n; ++i) {
+		graph.distance[i][i] = INF;
+	}
+	for (int i = 0; i < n - 1; i++) { 
+		for (int j = i + 1; j < n; ++j) {
+			double weight = sqrt((double)((coordinates[i].first - coordinates[j].first) * (coordinates[i].first - coordinates[j].first) +
+					     (coordinates[i].second - coordinates[j].second) * (coordinates[i].second - coordinates[j].second)));
+			graph.distance[i][j] = weight;
+			graph.distance[j][i] = weight;
+		}
+	}
+	graph.build_roads();
+	double ans = 0;
+	for (int i = 0; i < n; ++i) {
+		ans += graph.minWeight[i];
+	}
+	cout << ans << endl;
+	return 0;
+}

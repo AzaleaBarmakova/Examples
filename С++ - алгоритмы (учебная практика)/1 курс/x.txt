@@ -1,0 +1,73 @@
+#include <iostream>
+#include <vector>
+#include <set>
+#include <map>
+
+using namespace std;
+
+class Graph{
+public:
+    vector<vector<int> > gr;
+    int Gtime, buildings;
+    vector<int> up;
+    vector<int> tin;
+    set<int> artic_points;
+
+    Graph(int n, int m) {
+        Gtime = 0;
+        buildings = n;
+        for(int i = 0; i <= (n + m); i++) {
+            gr.push_back(vector<int>());
+        }
+        up.resize(n + m + 1);
+        tin.resize(n + m + 1);
+    }
+};
+
+void find_artic_points(Graph &G, int v, int p = -1){
+    G.up[v] = G.tin[v] = ++G.Gtime;
+    int child_count = 0;
+    for(auto u : G.gr[v]){
+        if(u == p){
+            continue;
+        }
+        if(G.tin[u]){
+            G.up[v] = min(G.up[v], G.tin[u]);
+        } else {
+            find_artic_points(G, u, v);
+            G.up[v] = min(G.up[v], G.up[u]);
+            if(G.up[u] >= G.tin[v] && p != -1 && v > G.buildings){
+                G.artic_points.insert(v);
+            }
+            child_count++;
+        }
+    }
+    if(p == -1 && child_count > 1 && v > G.buildings){
+        G.artic_points.insert(v);
+    }
+}
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+    Graph G(n, m);
+    for(int i = 1; i <= m; i++) {
+        int x, y, z;
+        cin >> x >> y >> z;
+        G.gr[x].push_back(i + n);
+        G.gr[y].push_back(i + n);
+        G.gr[z].push_back(i + n);
+        G.gr[i + n].push_back(x);
+        G.gr[i + n].push_back(y);
+        G.gr[i + n].push_back(z);
+    }
+    for(int i = 1; i <= (n + m); i++){
+        if(!G.tin[i])
+            find_artic_points(G, i);
+    }
+    cout << G.artic_points.size() << endl;
+    for(auto it = G.artic_points.begin(); it != G.artic_points.end(); it++){
+        cout << *it - n << ' ';
+    }
+    return 0;
+}

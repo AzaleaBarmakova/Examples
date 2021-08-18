@@ -1,0 +1,36 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+using namespace std;
+vector<int> z_function(string& s) {
+    int n = s.length();
+    vector<int> z(n, 0);
+    int l = 0, r = 0;
+    for(int i = 1; i < n; ++i) {
+        if (i <= r)
+            z[i] = min(r - i + 1, z[i - l]);
+        while(i + z[i] < n && s[z[i]] == s[i + z[i]])
+            z[i]++;
+        if (i + z[i] - 1 > r) {
+            l = i;
+            r = i + z[i] - 1;
+        }
+    }
+    z[0] = n;
+    return z;
+}
+
+int main() {
+    int N;
+    cin >> N;
+    string s;
+    cin >> s;
+    s = s + '#' + s;
+    reverse(s.begin() + 1 + N, s.end());
+    vector<int> a = z_function(s);
+    for (int i = a.size() - 1; i > N; --i)
+        cout << a[i] << ' ';
+    return 0;
+}
+

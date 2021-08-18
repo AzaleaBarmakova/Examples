@@ -1,0 +1,199 @@
+#include <iostream>
+#include <cstdlib>
+#include <vector>
+#include<string>
+using namespace std;
+
+struct Treap {
+    int y;   
+    int size;  
+    int val; 
+	int min;
+	int max;
+	Treap *l, *r; 
+};
+Treap *new_Treap(int val) {
+    Treap *result = new Treap;
+    result->y = rand();
+    result->size = 1;     
+    result->val = val;
+	result->min = val;
+    result->l = result->r = nullptr; 
+    return result;
+}
+int get_size(Treap *t) {
+    if (t == nullptr) { 
+		return 0; 
+	} 
+    return t->size; 
+}
+int get_min(Treap* t) {
+	if (t == nullptr)
+		return 1000000002;
+	return t->min;
+}
+int get_val(Treap* t) {
+	if (t == nullptr)
+		return -1;
+	return t->val;
+}
+int get_max(Treap* t) {
+	if (t == nullptr)
+		return -1;
+	return t->max;
+}
+void update_size(Treap *t) {
+    if (t == nullptr) { 
+		return; 
+	}
+    t->size = 1 + get_size(t->l) + get_size(t->r);
+	t->min = min(t->val, min(get_min(t->l), get_min(t->r)));
+	t->max = max(t->val, max(get_max(t->l), get_max(t->r)));
+}
+Treap *Merge(Treap *t1, Treap *t2) {
+    if (t1 == nullptr) { 
+		return t2; 
+	}
+    if (t2 == nullptr) {
+		return t1; 
+	}
+    if (t1->y > t2->y) {
+        t1->r = Merge(t1->r, t2);
+        update_size(t1);
+        return t1;
+    }
+    else {
+        t2->l = Merge(t1, t2->l);
+        update_size(t2);
+        return t2;
+    }
+}
+void Split(Treap *t, int x, Treap *&t1, Treap *&t2) {
+    if (t == nullptr) {
+        t1 = t2 = nullptr;
+        return;
+    }
+    if (get_val(t) < x) {
+        Split(t->r, x, t->r, t2);
+        t1 = t;
+    }
+    else {
+        Split(t->l, x, t1, t->l);
+        t2 = t;
+    }
+    update_size(t);
+}
+Treap *insert(Treap *t, int val) {
+    Treap *t1, *t2;
+    Split(t, val, t1, t2);
+    Treap* new_tree = new_Treap(val);
+    return Merge(Merge(t1, new_tree), t2);
+}
+Treap* erase(Treap *t, int pos) {
+    Treap *t1, *t2, *t3, *t4;
+    Split(t, pos, t1, t2);
+    Split(t2, pos + 1, t3, t4);
+    t = Merge(t1, t4);
+    delete t3;
+    return t;
+}
+int get_value(Treap *t, int pos) {
+    int index = get_size(t->l);
+    if (pos < index)
+		return get_value(t->l, pos);
+    else 
+		if (pos == index)
+			return t->val;
+		else
+			if (t->r == NULL && pos > index) {
+				cout << "none" << endl;
+				return -1;
+			}
+			else
+				return get_value(t->r, pos - index - 1);
+}
+int next(Treap *t, int R) {
+	Treap *tmp1;
+	Treap *tmp2;
+	Split(t, R + 1, tmp1, tmp2);
+	int ans = get_min(tmp2);
+	t = Merge(tmp1, tmp2);
+	return ans;
+}
+int prev(Treap *t, int L) {
+	Treap *tmp3;
+	Treap *tmp4;
+	Split(t, L, tmp3, tmp4);
+	int ans = get_max(tmp3);
+	t = Merge(tmp3, tmp4);
+	return ans;
+}
+void print_tree(Treap *t) {
+    if (t == nullptr) { 
+		return;
+	}
+    print_tree(t->l);
+    cout << t->val << " ";
+    print_tree(t->r);
+}
+bool searchKey(Treap *t, int key) {
+	if (t == nullptr)
+		return false;
+	if (t->val == key)
+		return true;
+	if (t->val < key)
+		return searchKey(t->r, key);
+	else
+		return searchKey(t->l, key);
+}
+
+int main() {
+	Treap *t = NULL;
+	string p = "start";
+	while (cin >> p) {
+		if (p == "insert") {
+			int x;
+			cin >> x;
+			t = insert(t, x);
+		}
+		if (p == "delete") {
+			int x;
+			cin >> x;
+			t = erase(t, x);
+		}
+		if (p == "exists") {
+			int x, ans;
+			cin >> x;
+			if (searchKey(t, x))
+				cout << "true" << endl;
+			else
+				cout << "false" << endl;
+		}
+		if (p == "next") {
+			int x, ans;
+			cin >> x;
+			ans = next(t, x);
+			if (ans != 1000000002)
+				cout << ans << endl;
+			else
+				cout << "none" << endl;
+		}
+		if (p == "prev") {
+			int x, ans;
+			cin >> x;
+			ans = prev(t, x);
+			if (ans != -1)
+				cout << ans << endl;
+			else
+				cout << "none" << endl;
+		}
+		if (p == "kth") {
+			int x, ans;
+			cin >> x;
+			ans = get_value(t, x - 1);
+			if (ans != -1)
+				cout << ans << endl;
+		}
+	}
+	return 0;
+}

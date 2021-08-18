@@ -1,0 +1,56 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <limits>
+#include <algorithm>
+#include <utility>
+using namespace std;
+vector<int> min_distance_Dijkstra(vector<vector<pair<int, int> > >& lists, int Start) {
+    int N = lists.size();
+    vector<int> distance(N, numeric_limits<int>::max());
+    priority_queue<pair<int, int> > Q;
+    distance[Start] = 0;
+    Q.push(make_pair(0, Start));
+    while (!Q.empty()) {
+        int v = Q.top().second;
+        int v_w = -Q.top().first;
+        Q.pop();
+        if(v_w > distance[v])
+            continue;
+        for (int i = 0; i < lists[v].size(); ++i) {
+            int to = lists[v][i].first;
+            int to_w = lists[v][i].second;
+            if (distance[to] > distance[v] + to_w) {
+                distance[to] = distance[v] + to_w;
+                Q.push(make_pair(-distance[to], to));
+            }
+        }
+    }
+    return distance;
+}
+
+
+int main() {
+    int NUM, N, M, Start, a, b, w;
+    cin >> NUM;
+    for(int k = 0; k < NUM; ++k) {
+        cin >> N >> M;
+        vector<vector<pair<int, int> > > lists(N, vector<pair<int, int> >());
+        for(int j = 0; j < M; ++j) {
+                cin >> a >> b >> w;
+                lists[a].push_back(make_pair(b, w));
+                lists[b].push_back(make_pair(a, w));
+        }
+        cin >> Start;
+		vector<int> distance = min_distance_Dijkstra(lists, Start);
+        for(int i = 0; i < distance.size(); ++i)  {
+            if (distance[i] == numeric_limits<int>::max())
+                cout << "2009000999 ";
+            else
+                cout << distance[i] << " ";
+        }
+        cout << endl;
+    }
+    return 0;
+}
+

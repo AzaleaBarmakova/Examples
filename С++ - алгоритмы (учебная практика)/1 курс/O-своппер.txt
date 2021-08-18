@@ -1,0 +1,157 @@
+#include <iostream>
+#include <random>
+
+using namespace std;
+
+const long long int INF_MIN = -1e12;
+
+struct Treap {
+    int prior;
+    long long int sum;
+    long long int data;
+    int size;
+    Treap *l, *r;
+    Treap(long long int data): data(data), prior(rand()), l(NULL), r(NULL), sum(data), size(1) {};
+};
+
+void print_treap(Treap *root){
+    if(root == NULL)
+        return;
+    print_treap(root->l);
+    cout << root->data << ' ';
+    print_treap(root->r);
+}
+
+void print(Treap *Tree1, Treap *Tree2){
+    cout << "treap1: "; 
+	print_treap(Tree1);
+    cout << endl;
+    cout << "treap2: "; 
+	print_treap(Tree2);
+    cout << endl;
+}
+
+long long int get_sum(Treap *root){
+    if(root == NULL)
+        return 0;
+    return root->sum;
+}
+
+int get_size(Treap *v){
+    return (v == NULL) ?  0 : v->size;
+}
+
+void update(Treap *root){
+    if(root == NULL)
+        return;
+    root->sum = get_sum(root->l) + get_sum(root->r) + root->data;
+    root->size = get_size(root->l) + get_size(root->r) + 1;
+}
+
+int left_son(int i){
+    return ((i + 2) / 2);
+}
+
+int right_son(int i){
+    return ((i + 1) / 2);
+}
+
+void Split(Treap *root, int x, Treap *&L, Treap *&R, int left = 1){
+    if(root == NULL){
+        L = NULL;
+        R = NULL;
+        return;
+    }
+    int key = left + get_size(root->l);
+    if(key <= x){
+        L = root;
+        Split(root->r, x, root->r, R, key + 1);
+    } 
+	else {
+        R = root;
+        Split(root->l, x, L, root->l, left);
+    }
+    update(root);
+}
+
+Treap *Merge(Treap *L, Treap *R) {
+    if (L == NULL) 
+        return R;
+    else 
+		if (R == NULL) 
+			return L;
+    if (L->prior >= R->prior) {
+        L->r = Merge(L->r, R);
+        update(L);
+        return L;
+    } 
+	else {
+        R->l = Merge(L, R->l);
+        update(R);
+        return R;
+    }
+}
+
+void insert(Treap *&root, int new_data, int x) {
+    Treap *new_v = new Treap(new_data);
+    Treap *tmp_l, *tmp_r;
+    Split(root, x - 1, tmp_l, tmp_r);
+    root = Merge(tmp_l, Merge(new_v, tmp_r));
+}
+
+void Swap(Treap *&Tree1, Treap *&Tree2, int L, int R){
+    Treap *t1, *t2, *t3, *t4;
+    Split(Tree1, left_son(R - 1), t1, t2);
+    Split(t1, left_son(L) - 1, t3, t4);
+    Treap *v1, *v2, *v3, *v4;
+    Split(Tree2, right_son(R - 1), v1, v2);
+    Split(v1, right_son(L) - 1, v3, v4);
+    Tree1 = Merge(Merge(t3, v4), t2);
+    Tree2 = Merge(Merge(v3, t4), v2);
+}
+
+long long int sum(Treap *&Tree1, Treap *&Tree2, int L, int R){
+    long long int ans = 0;
+    Treap *t1, *t2, *t3, *t4;
+    Split(Tree1, left_son(R - 1), t1, t2);
+    Split(t1, left_son(L) - 1, t3, t4);
+    ans += get_sum(t4);
+    Treap *v1, *v2, *v3, *v4;
+    Split(Tree2, right_son(R - 1), v1, v2);
+    Split(v1, right_son(L) - 1, v3, v4);
+    ans += get_sum(v4);
+    Tree1 = Merge(Merge(t3, t4), t2);
+    Tree2 = Merge(Merge(v3, v4), v2);
+    return ans;
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    int N, M, count = 1;
+    cin >> N >> M;
+    while(N != 0 && M != 0){
+        cout << "Swapper " << count << ':' << endl;
+        count++;
+        Treap *Tree2 = NULL, *Tree1 = NULL;
+        for(int i = 1; i <= N; i++){
+            int x;
+            cin >> x;
+            if(i % 2 == 1)
+                insert(Tree1, x, i);
+			else 
+                insert(Tree2, x, i);
+        }
+        for(int i = 1; i <= M; i++) {
+            int command, L, R;
+            cin >> command >> L >> R;
+            if(command == 1)
+                Swap(Tree1, Tree2, L, R);
+            if(command == 2)
+                cout << sum(Tree1, Tree2, L, R) << endl;
+        }
+        cout << endl;
+        cin >> N >> M;
+    }
+    return 0;
+}

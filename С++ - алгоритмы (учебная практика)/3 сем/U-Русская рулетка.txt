@@ -1,0 +1,68 @@
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+pair<bool, int> z_function(vector<char> &s) {
+    int n = s.size();
+    vector<int> z(n, 0);
+    int l = 0, r = 0;
+    for (int i = 1; i < n; ++i) {
+        if (i <= r)
+            z[i] = min(r - i + 1, z[i - l]);
+        while (i + z[i] < n && s[z[i]] == s[i + z[i]])
+            z[i]++;
+        if (i + z[i] - 1 > r) {
+            l = i;
+            r = i + z[i] - 1;
+        }
+		if (z[i] == n / 3 - 1)
+			return make_pair(true, i);
+    }
+    z[0] = n;
+    return make_pair(false, -1);
+}
+
+int main() {
+	int n;
+	cin >> n;
+    vector<char> sumString(3 * n), sumString2(3 * n);
+    char p;
+	for (int i = n; i < 2 * n - 1; ++i) {
+		cin >> p;
+		sumString[i] = p;
+		sumString[i + n] = p;
+		sumString2[i] = p;
+		sumString2[i + n] = p;
+	}
+	sumString[2 * n - 1] = '0';
+	sumString[3 * n - 1] = '0';
+	sumString2[3 * n - 1] = '1';
+	sumString2[2 * n - 1] = '1';
+	sumString[n - 1] = '#';
+	sumString2[n - 1] = '#';
+	for (int i = 0; i < n - 1; ++i) {
+		cin >> p;
+		sumString[i] = p;
+		sumString2[i] = p;
+	}
+    pair<bool, int> withZero = z_function(sumString);
+	pair<bool, int> withOne = z_function(sumString2);
+	if (withZero.first && withOne.first)
+		cout << "Random" << endl;
+	else 
+		if (withZero.first) {
+			if (sumString[withZero.second - 1] == '1')
+				cout << "Yes" << endl;
+			else
+				cout << "No" << endl; 
+		}
+		else 
+			if (withOne.first) {
+				if (sumString2[withOne.second - 1] == '1')
+					cout << "Yes" << endl;
+				else
+					cout << "No" << endl; 
+			}
+    return 0;
+}
+

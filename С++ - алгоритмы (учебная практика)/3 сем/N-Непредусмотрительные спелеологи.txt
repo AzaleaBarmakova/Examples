@@ -1,0 +1,82 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <limits>
+#include <algorithm>
+#include <utility>
+using namespace std;
+vector<unsigned long long int> min_distance_Dijkstra(vector<vector<pair<int, unsigned long long int> > >& lists, int Start, vector<unsigned long long int>&fire) {
+    int N = lists.size();
+    vector<unsigned long long int> distance(N, numeric_limits<unsigned long long int>::max());
+    priority_queue<pair<unsigned long long int, int> > Q;
+    distance[Start] = 0;
+    Q.push(make_pair(0, Start));
+    while (!Q.empty()) {
+        int v = Q.top().second;
+        unsigned long long int v_w = -Q.top().first;
+        Q.pop();
+        if(v_w > distance[v])
+            continue;
+        for (int i = 0; i < lists[v].size(); ++i) {
+            int to = lists[v][i].first;
+            unsigned long long int to_w = lists[v][i].second;
+            if (distance[to] > distance[v] + to_w) {
+                distance[to] = distance[v] + to_w;
+                Q.push(make_pair(-distance[to], to));
+            }
+        }
+    }
+    return distance;
+}
+vector<unsigned long long int> min_distance_Dijkstra_Fire(vector<vector<pair<int, unsigned long long int> > >&lists, vector<int>&fire) {
+    int N = lists.size();
+    vector<unsigned long long int> distance(N, numeric_limits<unsigned long long int>::max());
+    priority_queue<pair<unsigned long long int, int> > Q;
+	for (int i = 0; i < fire.size(); ++i) {
+		distance[fire[i]] = 0;
+		Q.push(make_pair(0, fire[i]));
+	}
+    while (!Q.empty()) {
+        int v = Q.top().second;
+        unsigned long long int v_w = -Q.top().first;
+        Q.pop();
+        if(v_w > distance[v])
+            continue;
+        for (int i = 0; i < lists[v].size(); ++i) {
+            int to = lists[v][i].first;
+            unsigned long long int to_w = lists[v][i].second;
+            if (distance[to] > distance[v] + to_w) {
+                distance[to] = distance[v] + to_w;
+                Q.push(make_pair(-distance[to], to));
+            }
+        }
+    }
+    return distance;
+}
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(0);
+	int K, N, M, StationInFire, Start, Finish, a, b;
+	unsigned long long int w;
+    cin >> N >> M >> K; // number of stations, --of tunnels and stations in fire
+    vector<int> stationsInFire(K);
+	for (int i = 0; i < K; ++i) {
+		cin >> StationInFire;
+		stationsInFire[i] = StationInFire - 1;
+	}
+	vector<vector<pair<int, unsigned long long int> > > lists(N, vector<pair<int, unsigned long long int> >());
+	for (int i = 0; i < M; ++i) {
+		cin >> a >> b >> w;
+        lists[a - 1].push_back(make_pair(b - 1, w));
+        lists[b - 1].push_back(make_pair(a - 1, w));
+    }
+    cin >> Start >> Finish;
+	vector<unsigned long long int> distance_fire = min_distance_Dijkstra_Fire(lists, stationsInFire);
+	vector<unsigned long long int> distance = min_distance_Dijkstra(lists, Start - 1, distance_fire); 
+	if (distance[Finish - 1] >= distance_fire[Finish - 1])
+		cout << -1 << endl;
+	else
+		cout << distance[Finish - 1] << endl;
+    return 0;
+}
+

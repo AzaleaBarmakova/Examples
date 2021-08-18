@@ -1,0 +1,84 @@
+#include<iostream>
+#include<vector>
+#include<queue>
+#include<limits>
+#include<algorithm>
+
+using namespace std;
+
+template <typename InIt, typename InIt_2, typename InIt_3>
+void Relax(InIt matrix, InIt_2 d, InIt_3 p, int u, int v) {
+	int INF = numeric_limits<int>::max();
+	if ((d[u] == INF) || (matrix[u][v] == INF))
+		return;
+	if (d[v] > d[u] + matrix[u][v]) {
+		d[v] = d[u] + matrix[u][v];
+		p[v] = u;
+	}
+	return;
+}
+
+template <typename InIt> 
+//константный  метод выглядит так (const в конце)
+pair<vector<int>, vector<int> > Bellman_Ford(InIt matrix, int n) {
+	vector<int> distance(n, 100000);
+	vector<int> parent(n, -1);
+	distance[0] = 0;
+	for (int k = 0; k < n; ++k)
+		for (int i = 0; i < n; ++i)
+			for (int j = 0; j < n; ++j) 
+				Relax(matrix, distance.begin(), parent.begin(), i, j);
+	return make_pair(distance, parent);
+}
+
+template <typename InIt>
+pair<vector<int>, bool> Bellman_Ford_findNegativeCycle(InIt matrix, int n) {
+	int INF = numeric_limits<int>::max();
+	pair<vector<int>, bool> answer(make_pair(vector<int> (0), false));
+	pair<vector<int>, vector<int> > sourse = Bellman_Ford(matrix, n);
+	for (int i = 0; i < n; ++i)
+		for (int j = 0; j < n; ++j) 
+				if (sourse.first[i] != INF && matrix[i][j] != INF && sourse.first[j] > sourse.first[i] + matrix[i][j])
+					answer.second = true;
+	if (!answer.second)
+		return answer;
+	int x = n - 1;
+	for (int i = 0; i < n; ++i)
+		x = sourse.second[x];     //x surely in cycle
+	for (int i = x; ; i = sourse.second[i]) {
+		answer.first.push_back(i + 1);
+		if (i == x && answer.first.size() > 1) {
+			reverse(answer.first.begin(), answer.first.end());
+			return answer;
+		}
+	}
+	reverse(answer.first.begin(), answer.first.end());
+	return answer;
+}
+
+int main() {
+	int INF = numeric_limits<int>::max();
+	int N, x;
+	cin >> N;             
+	vector<vector<int> > matrix(N, vector<int>(N, 0));
+	for (int i = 0; i < N;  ++i) 
+		for (int j = 0; j < N;  ++j){
+			cin >> x;
+			if (x == 100000)
+				matrix[i][j] = INF;
+			else
+				matrix[i][j] = x;
+		}
+	pair<vector<int>, bool> answer;
+	answer = Bellman_Ford_findNegativeCycle(matrix.begin(), N);
+	if (answer.second) {
+		cout << "YES" << endl;
+		x = answer.first.size();
+		cout << x << endl;
+		for (int i = 0; i < x; ++i) 
+			cout << answer.first[i] << ' ';
+	}
+	else
+		cout << "NO" << endl;
+	return 0;
+}

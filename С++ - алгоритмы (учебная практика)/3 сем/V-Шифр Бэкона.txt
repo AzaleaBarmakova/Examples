@@ -1,0 +1,46 @@
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+vector<int> z_function(string &s) {
+    int n = s.length();
+    vector<int> z(n, 0);
+    int l = 0, r = 0;
+    for (int i = 1; i < n; ++i) {
+        if (i <= r)
+            z[i] = min(r - i + 1, z[i - l]);
+        while (i + z[i] < n && s[z[i]] == s[i + z[i]])
+            z[i]++;
+        if (i + z[i] - 1 > r) {
+            l = i;
+            r = i + z[i] - 1;
+        }
+    }
+    return z;
+}
+
+int max_z_function(string &s) {
+    vector<int> z = z_function(s);
+    int max = 0;
+    for (int i = 0; i < z.size(); ++i)
+        if (max < z[i])
+            max = z[i];
+    return max;
+}
+
+int substrings_count(string &s) {
+    string s1 = "";
+    int count  = 0;
+    for(int i = 0; i < s.length(); ++i) {
+        s1 = s[i] + s1;
+        count += s1.length() - max_z_function(s1);
+    }
+    return count;
+}
+
+int main() {
+    string s;
+    cin >> s;
+    cout << substrings_count(s);
+    return 0;
+}

@@ -1,0 +1,87 @@
+#include<vector>
+#include<iostream>
+#include<stack>
+#include<string>
+using namespace std;
+class DSU {
+private:
+    vector<int> parent;
+    vector<int> rank;
+	void make_sets(int n);
+public:
+    DSU(int n);
+    void union_sets(int x, int y);
+    int find_set(int x);
+};
+DSU::DSU (int n) {
+	rank.resize(n);
+	parent.resize(n);
+	make_sets(n);
+}
+void DSU::make_sets(int n) {
+    for(int i = 0; i < n; ++i) {
+        parent[i] = i;
+        rank[i] = 0;
+    }
+    return;
+}
+int DSU::find_set(int x) {
+    if (parent[x] == x)
+        return x;
+    parent[x] = find_set(parent[x]);
+    return parent[x];
+}
+void DSU::union_sets(int x, int y) {
+    x = find_set(x);
+    y = find_set(y);
+    if(x != y) {
+        if(rank[x] < rank[y])
+            swap(x, y);
+        parent[y] = x;
+        if(rank[x] == rank[y])
+            rank[x]++;
+    }
+    return;
+}
+
+int main() {
+    int N, M, k, u, v;
+    stack<pair<string, pair<int, int> > >stack_op;
+    string s;
+    cin >> N >> M >> k;
+    vector<vector<int> > lists(N, vector<int>());
+    for(int i = 0; i < M; ++i) {
+        cin >> u >> v;
+        lists[u - 1].push_back(v - 1);
+        lists[v - 1].push_back(u - 1);
+    }
+    for(int i = 0; i < k; ++i) {
+        cin >> s;
+        cin >> u >> v;
+        stack_op.push(make_pair(s, make_pair(u - 1, v - 1)));
+    }
+    DSU dsu(N);
+    stack<bool>answer;
+    for (int i = 0; i < k; ++i) {
+        s = stack_op.top().first;
+        u = stack_op.top().second.first;
+        v = stack_op.top().second.second;
+        stack_op.pop();
+        if (s == "cut")
+            dsu.union_sets(u, v);
+        if (s == "ask") {
+            if (dsu.find_set(u) == dsu.find_set(v))
+                answer.push(true);
+            else
+                answer.push(false);
+        }
+    }
+    while(answer.size() > 0) {
+        if (answer.top())
+            cout << "YES" << endl;
+        else
+            cout << "NO" << endl;
+        answer.pop();
+    }
+    return 0;
+}

@@ -1,0 +1,64 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+using namespace std;
+vector<int> z_function(string &s) {
+    int n = s.length();
+    vector<int> z(n, 0);
+    int l = 0, r = 0;
+    for (int i = 1; i < n; ++i) {
+        if (i <= r)
+            z[i] = min(r - i + 1, z[i - l]);
+        while (i + z[i] < n && s[z[i]] == s[i + z[i]])
+            z[i]++;
+        if (i + z[i] - 1 > r) {
+            l = i;
+            r = i + z[i] - 1;
+        }
+    }
+    z[0] = n;
+    return z;
+}
+
+int main() {
+    string s, last_word;
+    cin >> s >> last_word;
+    string s1 = s + '#' + last_word;
+    vector<int> z = z_function(s1);
+    int s_N = s.length();
+    int N = z.size();
+    vector<int> parts;
+    bool has_partition = true;
+    for (int i = s_N + 1; i < N;) {
+        if (z[i] == 0) {
+            has_partition = false;
+            break;
+        }
+        if (i + z[i] == N) {
+            parts.push_back(N - s_N);
+            break;
+        }
+        int j = i + 1;
+        while (j < i + z[i] && i + z[i] > j + z[j])
+            ++j;
+        parts.push_back(j - s_N - 1);
+        i = j;
+    }
+    if (!has_partition) {
+        cout << "Yes";
+        return 0;
+    }
+    cout << "No" << endl;
+    int k = 0;
+    for(int i = 0; i < last_word.size();)
+        if (i == parts[k]) {
+             cout << ' ';
+             k++;
+        }
+        else {
+            cout << last_word[i];
+            i++;
+        }
+        return 0;
+}

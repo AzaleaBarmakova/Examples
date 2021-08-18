@@ -1,0 +1,61 @@
+#include <vector>
+#include <iostream>
+using namespace std;
+void DFS_visit(vector<vector<int> > &G, int N, vector<bool> &used, vector<int> &order, int v) {
+    used[v] = true;
+    for(int i = 0; i < G[v].size(); ++i)
+        if (!used[G[v][i]])
+            DFS_visit(G, N, used, order, G[v][i]);
+    order.push_back(v);
+}
+
+void DFS_visitREVERSE(vector<vector<int> >& TG, int N, vector<bool>& used, vector<vector<int> >&component, int n_component, int v){
+    used[v] = true;
+    component[n_component].push_back(v);
+    for(int i = 0; i < TG[v].size(); ++i)
+        if(!used[TG[v][i]])
+            DFS_visitREVERSE(TG, N, used, component, n_component, TG[v][i]);
+    return;
+}
+
+vector<vector<int> > find_component(vector<vector<int> >& G) {
+    vector<vector<int> > component;
+    int N = G.size();
+    vector<int> order;
+    vector<bool> used(N, false);
+    for (int i = 0; i < N; ++i)
+        if (!used[i])
+            DFS_visit(G, N, used, order, i);
+    vector<vector<int> > TG(N, vector<int>());
+    for (int i = 0; i < N; ++i)                               
+        for(int j = 0; j < G[i].size();++j)
+            TG[G[i][j]].push_back(i);
+	used = vector<bool> (N, false);
+    for (int i = 0; i < N; ++i) {
+        int v = order[N - 1 - i];
+        if (!used[v]) {
+            component.push_back(vector<int>());
+            DFS_visitREVERSE(TG, N, used, component, component.size() - 1, v);
+        }
+    }
+    return component;
+}
+
+int main() {
+    int N, M, a, b;
+    cin >> N >> M;
+    vector<vector<int> > G(N, vector<int>());
+    for(int i = 0; i < M; ++i) {
+        cin >> a >> b;
+        G[a-1].push_back(b-1);
+    }
+    vector<vector<int> > component = find_component(G);
+    cout << component.size() << endl;
+    vector<int> component_order_in_v(N);
+    for(int i = 0; i < component.size(); ++i)
+        for(int j = 0; j < component[i].size(); ++j)
+            component_order_in_v[component[i][j]] = i + 1;
+	for(int i = 0; i < N; ++i)
+        cout << component_order_in_v[i] << ' ';
+    return 0;
+}

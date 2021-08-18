@@ -1,0 +1,176 @@
+#include<iostream>
+#include<vector>
+
+using namespace std;
+
+template <typename T>
+class BinaryIndexedTree {
+private:
+	vector<T> s;
+	vector<T> t;
+	vector<T> answers;
+	int n;
+	int m;
+public:
+	BinaryIndexedTree() {
+		int x = 0;
+		cin >> n;
+		s.resize(n, 0);
+		t.resize(n, 0);
+		for (int i = 0; i < n; ++i) {
+			cin >> x;
+			update(i, x);
+		}
+		cin >> m;
+		answers.resize(m, -1);
+	}
+	~BinaryIndexedTree() {
+	}
+	void erase(int k) {
+		T d = -s[k];
+		while (k < n) {
+			t[k] += d;
+			k = k | (k + 1);
+		}
+	}
+	void update(int k, T d) {
+		s[k] = d;
+		while (k < n) {
+			t[k] += d;
+			k = k | (k + 1);
+		}
+	}
+	T sum(int k) {
+		T result = 0;
+		while (k >= 0) {
+			result += t[k];
+			k = (k & (k + 1)) - 1;
+		}
+		return result;
+	}
+	T answer(int l, int r, int i) {
+		T ans = 0;
+		ans = sum(r) - sum(l);
+		//cout << ans;
+		answers[i] = ans;
+		return ans;
+	}
+	void printAnswer() {
+		for (int i = 0; i < m; ++i)
+			if (answers[i] >= 0)
+				cout << answers[i] << ' ';
+	}
+	int getM() {
+		return m;
+	}
+};
+int main() {
+	BinaryIndexedTree<long long> bit;
+	char p = 'a';
+	int l = 0, r = 0;
+	int m = bit.getM();
+	for (int i = 0; i < m; ++i) {
+		cin >> p;
+		if (p == 'u') {
+			cin >> l >> r;
+			bit.erase(l - 1);
+			bit.update(l - 1, r);
+		}
+		if (p == 's') {
+			cin >> l >> r;
+			bit.answer(l - 2, r - 1, i);
+		}
+	}
+	bit.printAnswer();
+	return 0;
+}
+
+
+***********************************************************************
+
+#include<iostream>
+#include<vector>
+
+using namespace std;
+
+template <typename T>
+class BinaryIndexedTree {
+private:
+	vector<T> s;
+	vector<T> t;
+	//vector<T> answers;
+	int n;
+	int m;
+public:
+	BinaryIndexedTree() {
+		int x = 0;
+		cin >> n;
+		s.resize(n, 0);
+		t.resize(n, 0);
+		for (int i = 0; i < n; ++i) {
+			cin >> x;
+			update(i, x);
+		}
+		cin >> m;
+		//answers.resize(m, -1);
+	}
+	~BinaryIndexedTree() {
+	}
+	void erase(int k) {
+		T d = -s[k];
+		while (k < n) {
+			t[k] += d;
+			k = k | (k + 1);
+		}
+	}
+	void update(int k, T d) {
+		s[k] = d;
+		while (k < n) {
+			t[k] += d;
+			k = k | (k + 1);
+		}
+	}
+	T sum(int k) const {
+		T result = 0;
+		while (k >= 0) {
+			result += t[k];
+			k = (k & (k + 1)) - 1;
+		}
+		return result;
+	}
+	T answer(int l, int r, int i) const {
+		T ans = 0;
+		ans = sum(r) - sum(l);
+		//cout << ans;
+		//answers[i] = ans;
+		return ans;
+	}
+	/*void printAnswer() const{
+		for (int i = 0; i < m; ++i)
+			if (answers[i] >= 0)
+				cout << answers[i] << ' ';
+	}*/
+	int getM() const {
+		return m;
+	}
+};
+int main() {
+	BinaryIndexedTree<long long> bit;
+	char p = 'a';
+	int l = 0, r = 0;
+	int m = bit.getM();
+	for (int i = 0; i < m; ++i) {
+		cin >> p;
+		if (p == 'u') {
+			cin >> l >> r;
+			bit.erase(l - 1);
+			bit.update(l - 1, r);
+		}
+		if (p == 's') {
+			cin >> l >> r;
+			cout << bit.answer(l - 2, r - 1, i) << ' ';
+		}
+	}
+	//bit.printAnswer();
+	return 0;
+}

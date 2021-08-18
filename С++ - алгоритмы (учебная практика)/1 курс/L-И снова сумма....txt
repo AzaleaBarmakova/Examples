@@ -1,0 +1,125 @@
+#include<iostream>
+#include<string>
+
+using namespace std;
+
+class Treap {
+public:
+	int key;
+	int priority;
+	long long int sum;
+	Treap* left;
+	Treap *right;
+	Treap(int key): key(key), priority(rand()), left(nullptr), right(nullptr), sum(key) { }
+};
+
+long long int get_sum(Treap* v) {
+	if (v == nullptr)
+		return 0;
+	return v->sum;
+}
+
+void update(Treap* v) {
+	v->sum = v->key + get_sum(v->left) + get_sum(v->right);
+}
+
+Treap* merge(Treap* left_tree, Treap* right_tree) {
+	if (left_tree == nullptr)
+		return right_tree;
+	if (right_tree == nullptr)
+		return left_tree;
+	if (left_tree->priority >= right_tree->priority) {
+		left_tree->right = merge(left_tree->right, right_tree);
+		update(left_tree);
+		return left_tree;
+	}
+	else {
+		right_tree->left = merge(left_tree, right_tree->left);
+		update(right_tree);
+		return right_tree;
+	}
+}
+
+void split(Treap *t, int key, Treap *&left_tree, Treap *&right_tree) {
+	if (t == nullptr) {
+		left_tree = nullptr;
+		right_tree = nullptr;
+		return;
+	}
+	if (t->key <= key) {
+		split(t->right, key, t->right, right_tree);
+		left_tree = t;
+	}
+	else {
+		split(t->left, key, left_tree, t->left);
+		right_tree = t;
+	}
+	update(t);
+}
+
+Treap *t = nullptr;
+
+bool searchKey(Treap *t, int key) {
+	if (t == nullptr)
+		return false;
+	if (t->key == key)
+		return true;
+	if (t->key < key)
+		return searchKey(t->right, key);
+	else
+		return searchKey(t->left, key);
+}
+
+void insert(int key) {
+	if (!searchKey(t, key)) {
+		Treap *new_vertex = new Treap(key);
+		Treap *left;
+		Treap *right;
+		split(t, key, left, right);
+		t = merge(merge(left, new_vertex), right);
+	}
+}
+
+long long int sum(int L, int R) {
+	Treap *tmp1;
+	Treap *tmp2;
+	Treap *tmp3;
+	Treap *tmp4;
+	split(t, R, tmp1, tmp2);
+	split(tmp1, L - 1, tmp3, tmp4);
+	long long int ans = get_sum(tmp4);
+	merge(merge(tmp3, tmp4), tmp2);
+	return ans;
+}
+
+int main() {
+	int n;
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	cin >> n;
+	char p;
+	char last_p = 'a';
+	long long int result;
+	for (int i = 0; i < n; ++i) {
+		cin >> p;
+		if (p == '+' && (last_p == '+' || last_p == 'a')) {
+			int x;
+			cin >> x;
+			insert(x);
+		}
+		else 
+			if (p == '+') {
+				int x;
+				cin >> x;
+				insert((x + result) % 1000000000);
+			}
+			else {
+				int left, right;
+				cin >> left >> right;
+				result = sum(left, right);
+				cout << result << endl;
+			}
+		last_p = p;
+	}
+	return 0;
+}

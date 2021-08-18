@@ -1,0 +1,36 @@
+#include <iostream>
+#include <vector>
+#include <limits>
+using namespace std;
+int min_distance_Floyd(vector<vector<int> >& Matrix, int Start, int Finish) {
+    int N = Matrix.size();
+    int INF = numeric_limits<int>::max();
+    vector<vector<int> > D = Matrix;
+    for(int k = 0; k < N; ++k)
+        for(int i = 0; i < N; ++i)
+            for(int j = 0; j < N; ++j)
+                if (D[i][k] < INF && D[k][j] < INF && D[i][j] > D[i][k] + D[k][j])
+                    D[i][j] = D[i][k] + D[k][j];
+    return D[Start][Finish];
+}
+
+int main() {
+    int INF = numeric_limits<int>::max();
+    int N, Start, Finish, a;
+    cin >> N >> Start >> Finish;
+    vector<vector<int> > Matrix(N, vector<int> (N));
+    for(int i = 0; i < N; ++i)
+        for(int j = 0; j < N; ++j) {
+            cin >> a;
+            if (a == -1)
+                Matrix[i][j] = INF;
+            else
+                Matrix[i][j] = a;
+        }
+    int d = min_distance_Floyd(Matrix, Start - 1, Finish - 1);
+    if (d == INF)
+        cout << "-1";
+    else
+        cout << d;
+    return 0;
+}

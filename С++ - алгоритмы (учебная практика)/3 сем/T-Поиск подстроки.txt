@@ -1,0 +1,31 @@
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+vector<int> prefix_function(string &s) {
+    int N = s.length();
+    vector<int> pf(N, 0);
+    for(int i = 1; i < N; ++i) {
+        int j = pf[i-1];
+        while(j > 0 && s[i] != s[j])
+            j = pf[j-1];
+        if (s[i] == s[j])
+            j++;
+        pf[i] = j;
+    }
+    return pf;
+}
+
+int main() {
+    string s, t;
+    cin >> t >> s;
+    int n = s.length();
+    string b = s + '#' + t;
+    vector<int> pf = prefix_function(b);
+    for (int i = n + 1; i < pf.size(); ++i)
+        if (pf[i] == n)
+            cout << i - 2 * n  << ' ';
+    return 0;
+}
+
+

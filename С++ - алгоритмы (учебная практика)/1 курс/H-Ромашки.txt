@@ -1,0 +1,75 @@
+#include<iostream>
+#include<vector>
+
+using namespace std;
+
+template <typename T>
+class BinaryIndexedTree {
+private:
+	vector<vector<T> > s;
+	vector<T> answers;
+	int x;
+	int y;
+	int m;
+public:
+	BinaryIndexedTree() {
+		cin >> x >> y;
+		s.resize(x, vector<T>(y, 0));
+		cin >> m;
+	}
+	~BinaryIndexedTree() {
+	}
+	void update(int x1, int y1, T d) {
+		for(int i = x1; i < x; i = (i | (i + 1)))
+			for(int j = y1; j < y; j = (j | (j + 1)))
+				s[i][j] += d;
+	}
+	T sum(int x1, int y1) {
+		T result = 0;
+		for(int i = x1; i >= 0; i = ((i & (i + 1)) - 1))
+			for(int j = y1; j >= 0; j = ((j & (j + 1)) - 1))
+				result += s[i][j];
+		return result;
+	}
+	T answer(int x1, int y1, int x2, int y2) {
+		T ans = 0;
+		if (x1 > 0 && y1 > 0)
+			ans = sum(x2, y2) - sum(x2, y1 - 1) - sum(x1 - 1, y2) + sum(x1 - 1, y1 - 1);
+		else
+			if (x1 > 0)
+				ans = sum(x2, y2) - sum(x1 - 1, y2);
+			else
+				ans = sum(x2, y2) - sum(x2, y1 - 1);
+		//cout << ans;
+		answers.push_back(ans);
+		return ans;
+	}
+	void printAnswer() {
+		int n = answers.size();
+		for (int i = 0; i < n; ++i)
+			cout << answers[i] << endl;
+		return;
+	}
+	int getM() {
+		return m;
+	}
+};
+int main() {
+	BinaryIndexedTree<long long> bit;
+	int p = 0;
+	int x1, x2, y1, y2, k;
+	int m = bit.getM();
+	for (int i = 0; i < m; ++i) {
+		cin >> p;
+		if (p == 1) {
+			cin >> x1 >> y1 >> k;
+			bit.update(x1 - 1, y1 - 1, k);
+		}
+		if (p == 2) {
+			cin >> x1 >> y1 >> x2 >> y2;
+			bit.answer(x1 - 1, y1 - 1, x2 - 1, y2 - 1);
+		}
+	}
+	bit.printAnswer();
+	return 0;
+}

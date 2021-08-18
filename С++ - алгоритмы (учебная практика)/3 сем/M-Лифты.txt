@@ -1,0 +1,61 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std;
+long long int infinity = 9999999999999999;
+class Graph {
+public:
+	vector<vector<pair<long long int, long long int> > > lists;
+	vector<bool> used;
+	vector<long long int> distance;
+	Graph(long long int n) {
+		lists.resize(n);
+		used.resize(n, false);
+		distance.resize(n, infinity);
+	}
+	void min_distance_Dijkstra(long long int s);
+};
+void Graph::min_distance_Dijkstra(long long int s) {
+	distance[s] = 0;
+	priority_queue <pair<long long int, long long int> > Q;
+	Q.push(make_pair(0, s));
+	while (!Q.empty()) {
+		long long int v = Q.top().second;
+		long long int v_w = -Q.top().first;
+		Q.pop();
+		if (v_w > distance[v])
+			continue;
+		for (long long int j = 0; j < lists[v].size(); j++) {
+			long long int to = lists[v][j].first, to_w = lists[v][j].second;
+			if (distance[v] + to_w < distance[to]) {
+				distance[to] = distance[v] + to_w;
+				Q.push(make_pair(-distance[to], to));
+			}
+		}
+	}
+}
+int main() {
+	std::ios_base::sync_with_stdio(false);
+	std::cin.tie(0);
+	long long int n, up, down, insert, back, lifts_num;
+	cin >> n >> up >> down >> insert >> back >> lifts_num;
+	Graph lists(1000000 + lifts_num);
+	for (long long int i = 0; i < lifts_num; i++) {
+		long long int k;
+		cin >> k;
+		for (long long int j = 0; j < k; j++) {
+			long long int floor;
+			cin >> floor;
+			floor--;
+			lists.lists[1000000 + i].push_back(make_pair(floor, back));
+			lists.lists[floor].push_back(make_pair(1000000 + i, insert));
+		}
+	}
+	for (long long int i = 0; i < 1000000 - 1; i++) {
+		lists.lists[i].push_back(make_pair(i + 1, up));
+		lists.lists[i + 1].push_back(make_pair(i, down));
+	}
+	lists.min_distance_Dijkstra(0);
+	cout << lists.distance[n - 1] << endl;
+	return 0;
+}

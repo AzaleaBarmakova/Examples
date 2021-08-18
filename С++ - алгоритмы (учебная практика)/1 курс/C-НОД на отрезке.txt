@@ -1,0 +1,125 @@
+#include <iostream>
+#include <vector>
+#include <limits>
+using namespace std;
+template <typename T>
+class my_NOD {
+public:
+    int operator()(int a, int b) {
+		int c = 0;
+		if (a != -1 && b != -1) {
+			while (b) {
+				c = a % b;
+				a = b;
+				b = c;
+			}
+			return a;	
+		}
+		else
+			if (a != -1)
+				return a;
+			else
+				return b;
+	}
+    static int neutral;
+};
+
+template <typename T>
+int my_NOD<T>::neutral = -1;
+
+template <typename T, typename Op = my_NOD<T> >
+class SegmentTree{
+private:
+	int pow_of_two(int k); 
+	int log(int k);
+	int left_son(int i);
+	int right_son(int i);
+	Op op;
+	vector<int> SegTree;
+	int N;
+public:
+    template <typename InIt>
+    SegmentTree(InIt left, InIt right, Op op_ = my_NOD<T>());
+	int RMQ(int i, int j);
+    void update(int i, T x);
+};
+
+template <typename T, typename Op>
+template <typename InIt>
+SegmentTree<T, Op>::SegmentTree(InIt left, InIt right, Op op_) : op(op_), SegTree(), N(1 << (log(right - left - 1) + 1)) {
+    for (int i = 0; i < right - left; ++i)
+        SegTree.push_back(*(left + i));
+	SegTree.resize(2 * N, op.neutral);
+    for (int i = N; i < 2 * N; ++i)
+        SegTree[i] = SegTree[i - N];
+	for (int i = N - 1; i > 0; --i)
+        SegTree[i] = op(SegTree[2 * i], SegTree[2 * i + 1]);
+}
+
+template <typename T, typename Op>
+int SegmentTree<T, Op>::pow_of_two(int k) {
+    return 1 << k;
+}
+
+template <typename T, typename Op>
+int SegmentTree<T, Op>::log(int k) {
+    int res = 0;
+    while (k) {
+        k = k >> 1;
+        res++;
+    }
+    return res - 1;
+}
+
+template <typename T, typename Op>
+int SegmentTree<T, Op>::left_son(int i) {
+    return 2 * i;
+}
+
+template <typename T, typename Op>
+int SegmentTree<T, Op>::right_son(int i) {
+    return 2 * i + 1;
+}
+
+template <typename T, typename Op>
+int SegmentTree<T, Op>::RMQ(int i, int j) {
+    int answer = op.neutral;
+    int l = i + N - 1;
+    int r = j + N - 1;
+    while(l <= r) {
+        if (l & 1)
+            answer = op(answer, SegTree[l]);
+        if (!(r & 1))
+            answer = op(answer, SegTree[r]);
+        l = (l + 1) / 2;
+        r = (r - 1) / 2; 
+    }
+    return answer;
+}
+
+template <typename T, typename Op>
+void SegmentTree<T, Op>::update(int i, T x) {
+    int j = i + N - 1;
+    SegTree[j] = x;
+    while (j /= 2)
+        SegTree[j] = op(SegTree[left_son(j)], SegTree[right_son(j)]);
+}
+
+
+int main() {
+    int N, k, a, b;
+    vector<int> A;
+    cin >> N;
+    for (int i = 0; i < N; ++i) {
+        cin >> a;
+        A.push_back(a);
+    }
+    SegmentTree<int> ST(A.begin(), A.end());
+    cin >> k;
+    for (int i = 0; i < k; ++i) {
+        cin >> a >> b;
+        int answer = ST.RMQ(a, b);
+        cout << answer << endl;
+    }
+	return 0;
+}

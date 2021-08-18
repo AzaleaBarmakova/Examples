@@ -1,0 +1,47 @@
+#include <vector>
+#include <iostream>
+#include <limits>
+using namespace std;
+struct edge {
+    int from;
+    int to;
+    long long w;
+	edge(int f, int t, long long cost){
+		from = f;
+		to = t;
+		w = cost;
+	}
+};
+
+int min_cost(vector<edge>& flights, int N, int S, int F, int k) {
+    k++;
+    long long INF = numeric_limits<long long>::max();
+    vector<vector<long long> > dist(k, vector<long long>(N, INF));
+    for(int i = 0; i < k; ++i)
+        dist[i][S] = 0;
+	int size = flights.size();
+    for(int i = 1; i < k; ++i)
+        for(int j = 0; j < size; ++j) {
+            int from = flights[j].from;
+            int to = flights[j].to;
+            long long w = flights[j].w;
+            if (dist[i-1][from] < INF && dist[i][to] > dist[i - 1][from] + w)
+                dist[i][to] = dist[i - 1][from] + w;
+        }
+    if (dist[k - 1][F] == INF)
+        return -1;
+    return dist[k - 1][F];
+}
+
+int main() {
+    int N, M, K, S, F, a, b;
+    long long w;
+    cin >> N >> M >> K >> S >> F;
+    vector<edge> flights;
+    for(int i = 0; i < M; ++i) {
+        cin >> a >> b >> w;
+		flights.push_back(edge(a - 1, b - 1, w));
+    }
+    cout << min_cost(flights, N, S-1, F-1, K);
+    return 0;
+}

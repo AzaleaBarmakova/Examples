@@ -1,0 +1,43 @@
+#include <iostream> 
+#include <string> 
+#include <vector> 
+#include <algorithm> 
+
+using namespace std; 
+
+unsigned int a, b; 
+unsigned int cur = 0; 
+unsigned int nextRand() { 
+	cur = cur * a + b; 
+	return cur >> 8; 
+} 
+int main() { 
+	unsigned int max = 1 << 24, ans = 0, m, q, l, r, add; 
+	cin >> m >> q >> a >> b; 
+	vector<unsigned int> v(max); 
+	for (int i = 0; i < m; ++i) { 
+		add = nextRand(); 
+		l = nextRand(); 
+		r = nextRand(); 
+		if (l > r) 
+			swap(l, r);  
+		v[l] += add; 
+		v[r + 1] -= add; 
+	} 
+	for (int i = 1; i < max; i++) 
+		v[i] += v[i - 1]; 
+	for (int i = 1; i < max; i++) 
+		v[i] += v[i - 1]; 
+	for (int i = 0; i < q; ++i) { 
+		int l = nextRand(); 
+		int r = nextRand(); 
+		if (l > r) 
+			swap(l, r);  
+		if (!l) 
+			ans += v[r]; 
+		else 
+			ans += v[r] - v[l - 1]; 
+	} 
+	cout << ans << endl; 
+	return 0; 
+}
